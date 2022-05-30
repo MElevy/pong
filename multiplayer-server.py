@@ -2,14 +2,18 @@ from urpyg import *
 import socket, time, threading
 
 class Player1:
-    y = 750 / 2 - 100
+    y = 700 / 2 - 100
 
 class Player2:
-    y = 750 / 2 - 100
+    y = 700 / 2 - 100
 
 class Ball:
     x = 1000 / 2
-    y = 750 / 2
+    y = 700 / 2
+
+class Points:
+    epoints = 0
+    ppoints = 0
 
 class PongGame(Window):
     def __init__(self, *args, **kwargs):
@@ -80,6 +84,9 @@ class PongGame(Window):
         Ball.x = self.ball.x
         Ball.y = self.ball.y
 
+        Points.ppoints = self.ppoints
+        Points.epoints = self.epoints
+
     def render(self):
         self.ball.render()
         self.player.render()
@@ -89,7 +96,7 @@ class PongGame(Window):
 
 if __name__ == '__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.bind((input('ip: '), 8080))
+    sock.bind((input('ip: '), int(input('port: '))))
     sock.listen()
     conn, addr = sock.accept()
     def sock_thread_func():
@@ -98,8 +105,8 @@ if __name__ == '__main__':
             if not data:
                 quit()
             Player2.y = float(data)
-            conn.sendall((str(Player1.y) + ' ' + str(Ball.x) + ' ' + str(Ball.y)).encode())
+            conn.sendall((str(Player1.y) + ' ' + str(Ball.x) + ' ' + str(Ball.y) + ' ' + str(Points.ppoints) + ' ' + str(Points.epoints)).encode())
             time.sleep(1 / 60)
     sock_thread = threading.Thread(target = sock_thread_func)
     sock_thread.start()
-    PongGame(resizable = False, width = 1000, height = 750).run()
+    PongGame(resizable = False, width = 1000, height = 700).run()

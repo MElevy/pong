@@ -1,15 +1,19 @@
 from urpyg import *
 import socket, threading, time
 
+class Points:
+    epoints = 0
+    ppoints = 0
+
 class Player1:
-    y = 750 / 2 - 100
+    y = 700 / 2 - 100
 
 class Player2:
-    y = 750 / 2 - 100
+    y = 700 / 2 - 100
 
 class Ball:
     x = 1000 / 2
-    y = 750 / 2
+    y = 700 / 2
 
 class PongGame(Window):
     def __init__(self, *args, **kwargs):
@@ -25,6 +29,8 @@ class PongGame(Window):
         self.ball = Rectangle(self.width / 2, self.height / 2, 15, 15, color = (255, 255, 255))
 
     def update(self, dt):
+        self.epoints, self.ppoints = Points.epoints, Points.ppoints
+
         if held_keys['escape']:
             quit()
 
@@ -33,14 +39,7 @@ class PongGame(Window):
         if held_keys['down arrow']:
             self.enemy.y -= 200 * dt
 
-        if self.ball.x < -15:
-            self.init()
-            self.ppoints += 1
-            self.point_lbl.text = f'{self.epoints}   {self.ppoints}'
-        elif self.ball.x > self.width:
-            self.init()
-            self.epoints += 1
-            self.point_lbl.text = f'{self.epoints}   {self.ppoints}'
+        self.point_lbl.text = f'{self.epoints}   {self.ppoints}'
 
         self.ball.x = Ball.x
         self.ball.y = Ball.y
@@ -56,7 +55,7 @@ class PongGame(Window):
 
 if __name__ == '__main__':
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.connect((input('ip: '), 8080))
+    sock.connect((input('ip: '), int(input('port: '))))
     def sock_thread_func():
         while 1:
             sock.sendall(str(Player2.y).encode())
@@ -65,7 +64,9 @@ if __name__ == '__main__':
             Player1.y = float(data[0])
             Ball.x = float(data[1])
             Ball.y = float(data[2])
+            Points.ppoints = int(data[3])
+            Points.epoints = int(data[4])
             time.sleep(1 / 60)
     sock_thread = threading.Thread(target = sock_thread_func)
     sock_thread.start()
-    PongGame(resizable = False, width = 1000, height = 750).run()
+    PongGame(resizable = False, width = 1000, height = 700).run()
